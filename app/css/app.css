@@ -219,3 +219,29 @@ div.ticketProgressBarContainer.ratio0 {
     padding: 1px;
     z-index:10;
 }
+
+.options.modal {
+    width: 800px;
+    margin-left: -400px;
+}
+
+.options.modal.fade {
+    top: -100%;
+    left:-100%;
+}
+
+.form-group {
+    padding: 20px 0;
+/*    border-bottom: 1px solid #AAA;*/
+}
+
+.form-group h5 {
+    margin:0;
+}
+
+.form-element {
+    width: 380px;
+    display: inline-block;
+    margin: 5px 0;
+}
+

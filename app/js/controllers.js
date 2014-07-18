@@ -1,7 +1,5 @@
 'use strict';
 
-var redmineBaseUrl = 'https://tasks.verumnets.ru/';
-
 function LoginController($scope, $http, $rootScope, $location) {
 
 	var handleSuccessfulLogin = function handleSuccessfulLogin(user) {
@@ -15,7 +13,7 @@ function LoginController($scope, $http, $rootScope, $location) {
 	};
 
 	$scope.login = function login () {
-        jQuery.getJSON(redmineBaseUrl + 'users/current.json?key=' + $scope.apiCode + "&callback=?", function(data){
+        jQuery.getJSON(Config.REDMINE_URL + 'users/current.json?key=' + $scope.apiCode + "&callback=?", function(data){
             handleSuccessfulLogin(data.user);
         });
 	};
@@ -30,6 +28,7 @@ function LoginController($scope, $http, $rootScope, $location) {
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
 
 function KanbanController($scope, $http, $rootScope, $location) {
+    loadSettings();
 
     document.addEventListener("webkitfullscreenchange", function () {
         $("body").toggleClass("fullscreen");
@@ -52,8 +51,10 @@ function KanbanController($scope, $http, $rootScope, $location) {
     function getData() {
 
         // Try and use the user's apiCode to get the issues:
-        jQuery.getJSON(redmineBaseUrl + 'issues.json?sort=priority:desc,created_on:desc&limit=100&project_id=29&status_id=!5&key=' + $rootScope.user.apiCode + "&callback=?",
+        jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc&limit=' + Config.settings.tickets +
+            '&project_id=' + Config.settings.project + '&status_id=!5&key=' + $rootScope.user.apiCode + "&callback=?",
             function (data) {
+                console.log(data);
                 for (var i in data.issues) {
                     if (data.issues[i].status.id == 2) {
                         data.issues[i].ratio =
@@ -77,6 +78,10 @@ function KanbanController($scope, $http, $rootScope, $location) {
         getData();
     }, 30000);
 
+    $rootScope.$on("forceUpdate", function() {
+        getData();
+    });
+
 
 
 
@@ -95,12 +100,12 @@ function KanbanController($scope, $http, $rootScope, $location) {
         //Неназначенные и низкоприоритетные
 		$scope.noDev = function (ticket) {
             return (!ticket.assigned_to || !ticket.assigned_to.id || (!ticket.priority || ticket.priority.id < 4))
-        }
+        };
 
         //Дизайн
         $scope.design = function (ticket){
             return (ticket.tracker && ticket.tracker.id == designTracker)
-        }
+        };
 
         //Назначенные и в новые
 		$scope.developmentReady = function (ticket) {
@@ -109,19 +114,19 @@ function KanbanController($scope, $http, $rootScope, $location) {
                  && (ticket.status.id === activeStatus || ticket.status.id === suspendedStatus)
                  && (ticket.tracker && ticket.tracker.id != designTracker)
                  && (ticket.priority && ticket.priority.id >= 4)
-        }
+        };
 
         //Назначенные и в работе
 		$scope.inProgress = function (ticket) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && ticket.status.id === inProgress
                  && (ticket.tracker && ticket.tracker.id != designTracker)
-        }
+        };
 
         //Тестируются
 		$scope.inTesting = function (ticket)      {
             return ticket.status.id == readyForTesting || ticket.status.id == testing;
-        }
+        };
 
         //Выложенны и ожидют анализа
 		$scope.waitingReview = function (ticket)       { return ticket.status.id == ready; }
@@ -136,7 +141,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
         }
 
 		return null;
-	}
+	};
 
 
     $scope.handleDrop = function(elementScope, scope) {
@@ -146,3 +151,47 @@ function KanbanController($scope, $http, $rootScope, $location) {
 	$scope.logout = handleLogout;
 }
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
+
+function OptionsController($scope, $http, $rootScope, $location) {
+    $scope.toggleSettings = function() {
+        jQuery(".options").toggleClass("fade");
+    };
+
+    $scope.saveSettings = function() {
+        jQuery.extend(Config.settings, $scope.formData);
+        window.localStorage.setItem("settings", JSON.stringify(Config.settings));
+        jQuery(".options").toggleClass("fade");
+        $rootScope.$emit("forceUpdate");
+    };
+
+    $scope.formData = {
+        tracker: -1,
+        project_category: -1
+    };
+    $scope.tickets = Config.settings.tickets;
+
+    $scope.loadCategories = function() {
+        jQuery("#project_category").find("option[value != -1]").remove();
+        updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project + '/issue_categories.json?&key=' + $rootScope.user.apiCode + "&callback=?",
+                     "#project_category",
+                     "issue_categories"
+        );
+    };
+
+    updateSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#projects",
+                 "projects",
+                 Config.settings.project
+    );
+
+    updateSelect(Config.REDMINE_URL + 'trackers.json?&key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#tracker",
+                 "trackers"
+    );
+
+    updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/issue_categories.json?&key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#project_category",
+                 "issue_categories"
+    );
+}
+

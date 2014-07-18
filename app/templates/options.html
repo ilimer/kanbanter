@@ -1,0 +1,40 @@
+<div class="options modal fade" ng-controller="OptionsController">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button ng-click="toggleSettings()" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Настройки</h4>
+            </div>
+            <div class="modal-body">
+                <form name="optionsForm" class="form-inline">
+                    <div class="form-group">
+                        <div class="form-element">
+                            <label for="projects" class="control-label">Проект: </label>
+                            <select id="projects" class="form-control" ng-model="formData.project" ng-change="loadCategories()"></select>
+                        </div>
+                        <div class="form-element">
+                            <label for="project_category" class="control-label">Категория: </label>
+                            <select id="project_category" ng-model="formData.project_category" class="form-control">
+                                <option value="-1" selected>Все</option>
+                            </select>
+                        </div>
+                        <div class="form-element">
+                            <label for="tracker" class="control-label">Трекер: </label>
+                            <select id="tracker" ng-model="formData.tracker" class="form-control">
+                                <option value="-1" selected>Все</option>
+                            </select>
+                        </div>
+                        <div class="form-element">
+                            <label for="ticketscount" class="control-label">Количество тикетов: </label>
+                            <input type="number" id="ticketscount" ng-model="formData.tickets" class="form-control" value="{{tickets}}"/>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button ng-click="toggleSettings()" type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                <button ng-click="saveSettings()" type="button" class="btn btn-primary">Сохранить настройки</button>
+            </div>
+        </div>
+    </div>
+</div>
