@@ -51,7 +51,11 @@ function KanbanController($scope, $http, $rootScope, $location) {
     function getData() {
 
         // Try and use the user's apiCode to get the issues:
-        jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc&limit=' + Config.settings.tickets +
+        jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
+            ((Config.settings.assigned && Config.settings.assigned != -1) ? '&assigned_to_id=' + Config.settings.assigned : '') +
+            ((Config.settings.tracker && Config.settings.tracker != -1) ? '&tracker_id=' + Config.settings.tracker : '') +
+            ((Config.settings.project_category && Config.settings.project_category != -1) ? '&category_id=' + Config.settings.project_category : '') +
+            '&limit=' + Config.settings.tickets +
             '&project_id=' + Config.settings.project + '&status_id=!5&key=' + $rootScope.user.apiCode + "&callback=?",
             function (data) {
                 console.log(data);
@@ -76,6 +80,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
 
     setInterval(function(){
         getData();
+        $rootScope.$emit("forceAutoscroll");
     }, 30000);
 
     $rootScope.$on("forceUpdate", function() {
@@ -143,6 +148,14 @@ function KanbanController($scope, $http, $rootScope, $location) {
 		return null;
 	};
 
+	$scope.getTicketColor = function (ticket, fieldId) {
+        if (ticket.category && ticket.category.id) {
+            return Config.settings.colors["type" + ticket.category.id] || "";
+        }
+
+		return "";
+	};
+
 
     $scope.handleDrop = function(elementScope, scope) {
         console.log(elementScope, scope);
@@ -164,18 +177,50 @@ function OptionsController($scope, $http, $rootScope, $location) {
         $rootScope.$emit("forceUpdate");
     };
 
+    $scope.clearSettings = function() {
+        window.localStorage.removeItem("settings");
+        window.location.href = window.location.href;
+    };
+
     $scope.formData = {
         tracker: -1,
-        project_category: -1
+        project_category: -1,
+        autoscroll: Config.settings.autoscroll || false,
+        assigned: -1
     };
     $scope.tickets = Config.settings.tickets;
+    $scope.colorCategory = -1;
+    $scope.selectedColor = -1;
 
     $scope.loadCategories = function() {
-        jQuery("#project_category").find("option[value != -1]").remove();
-        updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project + '/issue_categories.json?&key=' + $rootScope.user.apiCode + "&callback=?",
-                     "#project_category",
-                     "issue_categories"
+        jQuery("#project_category, #category, #assigned").find("option[value != -1]").remove();
+
+        updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                     "#project_category, #category",
+                     "issue_categories",
+                     Config.settings.project_category
         );
+
+        updateUsersSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/memberships.json?limit=100&key=' + $rootScope.user.apiCode + "&callback=?",
+            "#assigned",
+            "memberships",
+            Config.settings.assigned
+        );
+
+    };
+
+    $scope.loadColor = function() {
+        var color = Config.settings.colors["type" + $scope.colorCategory];
+        $scope.selectedColor = color || -1;
+//        jQuery("#colors").val(color || "-1");
+    };
+
+    $scope.setColor = function() {
+        if ((!$scope.colorCategory && $scope.colorCategory !== 0) || $scope.colorCategory == "-1") {
+            return false;
+        }
+
+        Config.settings.colors["type" + $scope.colorCategory] = $scope.selectedColor == -1 ? null : $scope.selectedColor;
     };
 
     updateSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
@@ -184,14 +229,29 @@ function OptionsController($scope, $http, $rootScope, $location) {
                  Config.settings.project
     );
 
-    updateSelect(Config.REDMINE_URL + 'trackers.json?&key=' + $rootScope.user.apiCode + "&callback=?",
+    updateSelect(Config.REDMINE_URL + 'trackers.json?key=' + $rootScope.user.apiCode + "&callback=?",
                  "#tracker",
-                 "trackers"
+                 "trackers",
+                 Config.settings.tracker
     );
 
-    updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/issue_categories.json?&key=' + $rootScope.user.apiCode + "&callback=?",
-                 "#project_category",
-                 "issue_categories"
+    updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#project_category, #category",
+                 "issue_categories",
+                 Config.settings.project_category
     );
+
+    if (Config.settings.autoscroll) {
+        $rootScope.$on("forceAutoscroll", function() {
+            autoScroll();
+        });
+    }
+
+    updateUsersSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/memberships.json?limit=100&key=' + $rootScope.user.apiCode + "&callback=?",
+        "#assigned",
+        "memberships",
+        Config.settings.assigned
+    );
+
 }
 

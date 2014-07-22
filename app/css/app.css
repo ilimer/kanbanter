@@ -22,8 +22,8 @@ body {
   min-height: 600px;
   border-bottom: 1px solid #ccc;
   margin-bottom: 20px;
-  width:218px;
-  margin-left: 20px;
+  width:14.5%;
+  margin-left: 2%;
 }
 
 /*.small-column {
@@ -59,7 +59,7 @@ div.clear {
 }
 
 .ticket {
-  background: #F0D878;
+  background: #B8860B;
   color: #fff;
   padding: 5px;
   margin: 15px -8px 20px 8px;
@@ -67,7 +67,7 @@ div.clear {
 }
 
 .ticket p.issueNumber {
-  background: #F4E39D;
+  background: #e5a50b;
   padding: 3px 5px 3px 5px;
   margin-left: -5px;
   border-bottom: 1px solid #CBB768;
@@ -179,35 +179,122 @@ div.ticketProgressBarContainer.ratio0 {
   margin: 5px;
 }
 
-.unit12, .unit12 p.issueNumber {
-    background: #555;
+.unit12, .unit12 p.issueNumber,
+.black {
+    background: #000;
     border-bottom-color:#000;
 }
 
-.unit18, .unit18 p.issueNumber {
+.black p.issueNumber {
+  background: #555;
+  border-bottom-color:#000;
+}
+
+.unit18, .unit18 p.issueNumber,
+.green {
+    border-bottom-color:#70c17a;
+    background:#3e7144;
+}
+
+.green p.issueNumber {
     background:#70c17a;
     border-bottom-color:#3e7144;
 }
 
-.unit14, .unit14 p.issueNumber {
+.unit14, .unit14 p.issueNumber,
+.purple {
+    border-bottom-color: #b57bc6;
+    background:#7e3c91;
+}
+
+.purple p.issueNumber {
     background: #b57bc6;
     border-bottom-color:#7e3c91;
 }
 
-.unit15, .unit15 p.issueNumber  {
+.unit15, .unit15 p.issueNumber,
+.orange {
+    border-bottom-color: #f78512;
+    background: #b96f25;
+}
+
+.orange p.issueNumber  {
     background: #f78512;
     border-bottom-color: #b96f25;
 }
 
-.unit13, .unit13 p.issueNumber {
+.unit13, .unit13 p.issueNumber,
+.blue {
+    border-bottom-color: #6a9fd0;
+    background:#113b62;
+}
+
+.blue p.issueNumber {
     background: #6a9fd0;
     border-bottom-color:#113b62;
 }
 
-.unit17, .unit17 p.issueNumber {
+.unit17, .unit17 p.issueNumber,
+.pink {
+    border-bottom-color: #e1818b;
+    background:#ba737a;
+}
+
+.pink p.issueNumber {
     background: #e1818b;
     border-bottom-color:#ba737a;
 }
+
+.red {
+    border-bottom-color: #800000;
+    background: #e40000;
+}
+
+.red p.issueNumber {
+    background: #800000;
+    border-bottom-color: #e40000;
+}
+
+.cyan {
+    border-bottom-color: #008080;
+    background: #20B2AA;
+}
+
+.cyan p.issueNumber {
+  background: #008080;
+  border-bottom-color: #20B2AA;
+}
+
+.grey {
+  border-bottom-color: #696969;
+  background: #808080;
+}
+
+.grey p.issueNumber {
+  background: #696969;
+  border-bottom-color: #808080;
+}
+
+.magenta {
+  border-bottom-color: #8B008B;
+  background: #df00df;
+}
+
+.magenta p.issueNumber {
+  background: #8B008B;
+  border-bottom-color: #df00df;
+}
+
+.brown {
+  border-bottom-color: #8B4513;
+  background: #A0522D;
+}
+
+.brown p.issueNumber {
+  background: #8B4513;
+  border-bottom-color: #A0522D;
+}
+
 
 .last-update {
     padding-left: 10px;
@@ -232,11 +319,11 @@ div.ticketProgressBarContainer.ratio0 {
 
 .form-group {
     padding: 20px 0;
-/*    border-bottom: 1px solid #AAA;*/
+    border-bottom: 1px solid #AAA;
 }
 
 .form-group h5 {
-    margin:0;
+    margin:0 0 5px 0;
 }
 
 .form-element {
@@ -245,3 +332,6 @@ div.ticketProgressBarContainer.ratio0 {
     margin: 5px 0;
 }
 
+input[type="radio"], input[type="checkbox"] {
+    margin-top:-2px;
+}
