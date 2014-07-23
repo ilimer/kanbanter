@@ -66,3 +66,34 @@ function autoScroll() {
         }
     }
 }
+
+function loadIssues(apiCode, callback, offset, result) {
+    offset = offset || 0;
+    result = result || [];
+    jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
+        ((Config.settings.assigned && Config.settings.assigned != -1) ? '&assigned_to_id=' + Config.settings.assigned : '') +
+        ((Config.settings.tracker && Config.settings.tracker != -1) ? '&tracker_id=' + Config.settings.tracker : '') +
+        ((Config.settings.project_category && Config.settings.project_category != -1) ? '&category_id=' + Config.settings.project_category : '') +
+        (offset ? "&offset=" + offset : "") +
+        '&limit=' + Config.settings.tickets +
+        '&project_id=' + Config.settings.project + '&status_id=!5&key=' + apiCode + "&callback=?",
+        function (data) {
+            console.log(data);
+            if (data.issues) {
+                result = result.concat(data.issues);
+                offset = offset + 100;
+                var left = data.total_count - offset;
+                data = null;
+                var diff = Config.settings.tickets - offset;
+                if (diff <= 0 || left <= 0) {
+                    callback(result);
+                } else {
+                    loadIssues(apiCode, callback, offset, result);
+                }
+            } else {
+                throw Error("Issues list is empty!")
+            }
+        }
+    );
+
+}

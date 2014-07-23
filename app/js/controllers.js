@@ -50,8 +50,24 @@ function KanbanController($scope, $http, $rootScope, $location) {
 
     function getData() {
 
+        var callback = function(data) {
+            for (var i in data) {
+                if (data[i].status.id == 2) {
+                    data[i].ratio =
+                        Math.min(100,
+                            Math.floor((new Date() - new Date(data[i].start_date )) / 1000 / 60 / 60 / 24 / 2 * 100)
+                        );
+                } else {
+                    data[i].ratio = 0;
+                }
+            }
+            $scope.issues = data;
+            $scope.$apply();
+            $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
+        };
+        loadIssues($rootScope.user.apiCode, callback);
         // Try and use the user's apiCode to get the issues:
-        jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
+/*        jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
             ((Config.settings.assigned && Config.settings.assigned != -1) ? '&assigned_to_id=' + Config.settings.assigned : '') +
             ((Config.settings.tracker && Config.settings.tracker != -1) ? '&tracker_id=' + Config.settings.tracker : '') +
             ((Config.settings.project_category && Config.settings.project_category != -1) ? '&category_id=' + Config.settings.project_category : '') +
@@ -73,7 +89,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
                 $scope.$apply();
                 $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
             }
-        );
+        );*/
     }
 
     getData();
