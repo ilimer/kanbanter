@@ -7,7 +7,13 @@ angular.module('kanbanter.directives', []).
 			templateUrl: 'templates/navbar.html',
 			replace: true
 		};
-	}).directive('kanbanTicket', function () {
+	}).directive('kanbanOptions', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/options.html',
+            replace: true
+        };
+    }).directive('kanbanTicket', function () {
 		return {
 			restrict: 'E',
 			templateUrl: 'templates/ticket.html',

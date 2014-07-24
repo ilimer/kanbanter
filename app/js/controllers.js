@@ -1,7 +1,5 @@
 'use strict';
 
-var redmineBaseUrl = 'https://tasks.verumnets.ru/';
-
 function LoginController($scope, $http, $rootScope, $location) {
 
 	var handleSuccessfulLogin = function handleSuccessfulLogin(user) {
@@ -15,7 +13,7 @@ function LoginController($scope, $http, $rootScope, $location) {
 	};
 
 	$scope.login = function login () {
-        jQuery.getJSON(redmineBaseUrl + 'users/current.json?key=' + $scope.apiCode + "&callback=?", function(data){
+        jQuery.getJSON(Config.REDMINE_URL + 'users/current.json?key=' + $scope.apiCode + "&callback=?", function(data){
             handleSuccessfulLogin(data.user);
         });
 	};
@@ -30,6 +28,7 @@ function LoginController($scope, $http, $rootScope, $location) {
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
 
 function KanbanController($scope, $http, $rootScope, $location) {
+    loadSettings();
 
     document.addEventListener("webkitfullscreenchange", function () {
         $("body").toggleClass("fullscreen");
@@ -51,31 +50,34 @@ function KanbanController($scope, $http, $rootScope, $location) {
 
     function getData() {
 
-        // Try and use the user's apiCode to get the issues:
-        jQuery.getJSON(redmineBaseUrl + 'issues.json?sort=priority:desc,created_on:desc&limit=300&project_id=29&status_id=!5&key=' + $rootScope.user.apiCode + "&callback=?",
-            function (data) {
-                for (var i in data.issues) {
-                    if (data.issues[i].status.id == 2) {
-                        data.issues[i].ratio =
-                            Math.min(100,
-                                Math.floor((new Date() - new Date(data.issues[i].start_date )) / 1000 / 60 / 60 / 24 / 2 * 100)
-                            );
-                    } else {
-                        data.issues[i].ratio = 0;
-                    }
+        var callback = function(data) {
+            for (var i in data) {
+                if (data[i].status.id == 2) {
+                    data[i].ratio =
+                        Math.min(100,
+                            Math.floor((new Date() - new Date(data[i].start_date )) / 1000 / 60 / 60 / 24 / 2 * 100)
+                        );
+                } else {
+                    data[i].ratio = 0;
                 }
-                $scope.issues = data.issues;
-                $scope.$apply();
-                $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
             }
-        );
+            $scope.issues = data;
+            $scope.$apply();
+            $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
+        };
+        loadIssues($rootScope.user.apiCode, callback);
     }
 
     getData();
 
     setInterval(function(){
         getData();
+        $rootScope.$emit("forceAutoscroll");
     }, 30000);
+
+    $rootScope.$on("forceUpdate", function() {
+        getData();
+    });
 
 
 
@@ -101,15 +103,15 @@ function KanbanController($scope, $http, $rootScope, $location) {
 
         //Дизайн
         $scope.design = function (ticket){
-            return (ticket.tracker && ticket.tracker.id == designTracker)
-        }
+            return (ticket.tracker && ticket.tracker.id == designTracker && !Config.settings.designer)
+        };
 
         //Назначенные и в новые
 		$scope.developmentReady = function (ticket) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && (!ticket.category || ticket.category.id != otherCategory)
                  && (ticket.status.id === activeStatus || ticket.status.id === suspendedStatus)
-                 && (ticket.tracker && ticket.tracker.id != designTracker)
+                 && (ticket.tracker && (ticket.tracker.id != designTracker || Config.settings.designer))
                  && (ticket.priority && ticket.priority.id >= 4)
                  && (ticket.priority && ticket.priority.id != 21)
                  && (ticket.priority && ticket.priority.id != 22)
@@ -119,13 +121,13 @@ function KanbanController($scope, $http, $rootScope, $location) {
 		$scope.inProgress = function (ticket) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && (ticket.status.id === inProgress || ticket.status.id == returnedToDevel)
-                 && (ticket.tracker && ticket.tracker.id != designTracker)
+                 && (ticket.tracker && (ticket.tracker.id != designTracker || Config.settings.designer))
         }
 
         //Тестируются
 		$scope.inTesting = function (ticket)      {
             return ticket.status.id == readyForTesting || ticket.status.id == testing;
-        }
+        };
 
         //Выложенны и ожидют анализа
 		$scope.waitingReview = function (ticket)       { return ticket.status.id == ready; }
@@ -140,7 +142,18 @@ function KanbanController($scope, $http, $rootScope, $location) {
         }
 
 		return null;
-	}
+	};
+
+	$scope.getTicketColor = function (ticket, fieldId) {
+        if (ticket.category && ticket.category.id) {
+            return Config.settings.colors["type" + ticket.category.id] || "";
+        }
+        if (ticket.project && ticket.project.id) {
+            return Config.settings.subcolors["sub" + ticket.project.id] || "";
+        }
+
+		return "";
+	};
 
 
     $scope.handleDrop = function(elementScope, scope) {
@@ -150,3 +163,115 @@ function KanbanController($scope, $http, $rootScope, $location) {
 	$scope.logout = handleLogout;
 }
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
+
+function OptionsController($scope, $http, $rootScope, $location) {
+    $scope.toggleSettings = function() {
+        jQuery(".options").toggleClass("fade");
+    };
+
+    $scope.saveSettings = function() {
+        jQuery.extend(Config.settings, $scope.formData);
+        window.localStorage.setItem("settings", JSON.stringify(Config.settings));
+        jQuery(".options").toggleClass("fade");
+        $rootScope.$emit("forceUpdate");
+    };
+
+    $scope.clearSettings = function() {
+        window.localStorage.removeItem("settings");
+        window.location.href = window.location.href;
+    };
+
+    $scope.formData = {
+        tracker: -1,
+        project_category: -1,
+        autoscroll: Config.settings.autoscroll || false,
+        assigned: -1,
+        designer: false
+    };
+    $scope.tickets = Config.settings.tickets;
+    $scope.colorCategory = -1;
+    $scope.selectedColor = -1;
+    $scope.colorSubproject = -1;
+    $scope.selectedColor2 = -1;
+
+    $scope.loadCategories = function() {
+        jQuery("#project_category, #category, #assigned, #subprojects").find("option[value != -1]").remove();
+
+        updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                     "#project_category, #category, #subprojects",
+                     "issue_categories",
+                     Config.settings.project_category
+        );
+
+        updateUsersSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/memberships.json?limit=100&key=' + $rootScope.user.apiCode + "&callback=?",
+            "#assigned",
+            "memberships",
+            Config.settings.assigned
+        );
+
+    };
+
+    $scope.loadColor = function() {
+        var color = Config.settings.colors["type" + $scope.colorCategory];
+        $scope.selectedColor = color || -1;
+    };
+
+    $scope.loadSubColor = function() {
+        var color = Config.settings.subcolors["sub" + $scope.colorSubproject];
+        $scope.selectedSubColor = color || -1;
+    };
+
+    $scope.setColor = function() {
+        if ((!$scope.colorCategory && $scope.colorCategory !== 0) || $scope.colorCategory == "-1") {
+            return false;
+        }
+
+        Config.settings.colors["type" + $scope.colorCategory] = $scope.selectedColor == -1 ? null : $scope.selectedColor;
+    };
+
+    $scope.setSubColor = function() {
+        if ((!$scope.colorSubproject && $scope.colorSubproject !== 0) || $scope.colorSubproject == "-1") {
+            return false;
+        }
+
+        Config.settings.subcolors["sub" + $scope.colorSubproject] = $scope.selectedSubColor == -1 ? null : $scope.selectedSubColor;
+    };
+
+    $scope.toggleGroup = function($event) {
+        var el = jQuery($event.target);
+        el.find("span").toggleClass("icon-chevron-down").toggleClass("icon-chevron-up");
+        el.parent().toggleClass("collapse");
+    };
+
+    updateProjectsSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#projects",
+                 "projects",
+                 Config.settings.project
+    );
+
+    updateSelect(Config.REDMINE_URL + 'trackers.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#tracker",
+                 "trackers",
+                 Config.settings.tracker
+    );
+
+    updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                 "#project_category, #category",
+                 "issue_categories",
+                 Config.settings.project_category
+    );
+
+    if (Config.settings.autoscroll) {
+        $rootScope.$on("forceAutoscroll", function() {
+            autoScroll();
+        });
+    }
+
+    updateUsersSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/memberships.json?limit=100&key=' + $rootScope.user.apiCode + "&callback=?",
+        "#assigned",
+        "memberships",
+        Config.settings.assigned
+    );
+
+}
+
