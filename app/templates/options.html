@@ -10,7 +10,9 @@
                     <div class="form-group">
                         <div class="form-element">
                             <label for="projects" class="control-label">Проект: </label>
-                            <select id="projects" class="form-control" ng-model="formData.project" ng-change="loadCategories()"></select>
+                            <select id="projects" class="form-control" ng-model="formData.project" ng-change="loadCategories()">
+                                <option value="-1" selected>Все</option>
+                            </select>
                         </div>
                         <div class="form-element">
                             <label for="project_category" class="control-label">Категория: </label>
@@ -35,8 +37,8 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <h5>Цвета для категорий</h5>
+                    <div class="form-group collapse">
+                        <h5 class="navbar-link" ng-click="toggleGroup($event)">Цвета для категорий <span class="icon-chevron-down"></span></h5>
                         <select id="category" ng-model="colorCategory" ng-change="loadColor()" class="form-control">
                             <option value="-1" selected>Нет</option>
                         </select>
@@ -56,10 +58,34 @@
                         </select>
                         <button ng-click="setColor()" class="btn btn-info">Назначить</button>
                     </div>
-                    <div class="form-group">
-                        <h5>Дополнительные настройки</h5>
+                    <div class="form-group collapse">
+                        <h5 class="navbar-link" ng-click="toggleGroup($event)">Цвета для подпроектов <span class="icon-chevron-down"></span></h5>
+                        <select id="subprojects" ng-model="colorSubproject" ng-change="loadSubColor()" class="form-control">
+                            <option value="-1" selected>Нет</option>
+                        </select>
+                        <select id="subcolors" ng-model="selectedSubColor" class="form-control">
+                            <option value="-1" selected>Нет</option>
+                            <option value="black">черный</option>
+                            <option value="green">зеленый</option>
+                            <option value="purple">фиолетовый</option>
+                            <option value="orange">оранжевый</option>
+                            <option value="blue">синий</option>
+                            <option value="pink">розовый</option>
+                            <option value="red">красный</option>
+                            <option value="cyan">голубой</option>
+                            <option value="grey">серый</option>
+                            <option value="magenta">пурпурный</option>
+                            <option value="brown">коричневый</option>
+                        </select>
+                        <button ng-click="setSubColor()" class="btn btn-info">Назначить</button>
+                    </div>
+                    <div class="form-group collapse">
+                        <h5 class="navbar-link" ng-click="toggleGroup($event)">Дополнительные настройки <span class="icon-chevron-down"></span></h5>
                         <input id="autoscroll" type="checkbox" ng-model="formData.autoscroll"/>
                         <label for="autoscroll">Включить автоскроллинг</label>
+                        <br/>
+                        <input id="designer" type="checkbox" ng-model="formData.designer"/>
+                        <label for="designer">Я &mdash; дизайнер</label>
                     </div>
                 </form>
             </div>

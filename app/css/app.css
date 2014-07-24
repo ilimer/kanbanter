@@ -324,6 +324,7 @@ div.ticketProgressBarContainer.ratio0 {
 
 .form-group h5 {
     margin:0 0 5px 0;
+    cursor: pointer;
 }
 
 .form-element {
@@ -334,4 +335,8 @@ div.ticketProgressBarContainer.ratio0 {
 
 input[type="radio"], input[type="checkbox"] {
     margin-top:-2px;
+}
+
+.modal-body {
+    max-height:600px;
 }

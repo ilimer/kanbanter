@@ -66,30 +66,6 @@ function KanbanController($scope, $http, $rootScope, $location) {
             $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
         };
         loadIssues($rootScope.user.apiCode, callback);
-        // Try and use the user's apiCode to get the issues:
-/*        jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
-            ((Config.settings.assigned && Config.settings.assigned != -1) ? '&assigned_to_id=' + Config.settings.assigned : '') +
-            ((Config.settings.tracker && Config.settings.tracker != -1) ? '&tracker_id=' + Config.settings.tracker : '') +
-            ((Config.settings.project_category && Config.settings.project_category != -1) ? '&category_id=' + Config.settings.project_category : '') +
-            '&limit=' + Config.settings.tickets +
-            '&project_id=' + Config.settings.project + '&status_id=!5&key=' + $rootScope.user.apiCode + "&callback=?",
-            function (data) {
-                console.log(data);
-                for (var i in data.issues) {
-                    if (data.issues[i].status.id == 2) {
-                        data.issues[i].ratio =
-                            Math.min(100,
-                                Math.floor((new Date() - new Date(data.issues[i].start_date )) / 1000 / 60 / 60 / 24 / 2 * 100)
-                            );
-                    } else {
-                        data.issues[i].ratio = 0;
-                    }
-                }
-                $scope.issues = data.issues;
-                $scope.$apply();
-                $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
-            }
-        );*/
     }
 
     getData();
@@ -125,7 +101,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
 
         //Дизайн
         $scope.design = function (ticket){
-            return (ticket.tracker && ticket.tracker.id == designTracker)
+            return (ticket.tracker && ticket.tracker.id == designTracker && !Config.settings.designer)
         };
 
         //Назначенные и в новые
@@ -133,7 +109,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && (!ticket.category || ticket.category.id != otherCategory)
                  && (ticket.status.id === activeStatus || ticket.status.id === suspendedStatus)
-                 && (ticket.tracker && ticket.tracker.id != designTracker)
+                 && (ticket.tracker && (ticket.tracker.id != designTracker || Config.settings.designer))
                  && (ticket.priority && ticket.priority.id >= 4)
         };
 
@@ -141,7 +117,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
 		$scope.inProgress = function (ticket) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && ticket.status.id === inProgress
-                 && (ticket.tracker && ticket.tracker.id != designTracker)
+                 && (ticket.tracker && (ticket.tracker.id != designTracker || Config.settings.designer))
         };
 
         //Тестируются
@@ -167,6 +143,9 @@ function KanbanController($scope, $http, $rootScope, $location) {
 	$scope.getTicketColor = function (ticket, fieldId) {
         if (ticket.category && ticket.category.id) {
             return Config.settings.colors["type" + ticket.category.id] || "";
+        }
+        if (ticket.project && ticket.project.id) {
+            return Config.settings.subcolors["sub" + ticket.project.id] || "";
         }
 
 		return "";
@@ -202,17 +181,20 @@ function OptionsController($scope, $http, $rootScope, $location) {
         tracker: -1,
         project_category: -1,
         autoscroll: Config.settings.autoscroll || false,
-        assigned: -1
+        assigned: -1,
+        designer: false
     };
     $scope.tickets = Config.settings.tickets;
     $scope.colorCategory = -1;
     $scope.selectedColor = -1;
+    $scope.colorSubproject = -1;
+    $scope.selectedColor2 = -1;
 
     $scope.loadCategories = function() {
-        jQuery("#project_category, #category, #assigned").find("option[value != -1]").remove();
+        jQuery("#project_category, #category, #assigned, #subprojects").find("option[value != -1]").remove();
 
         updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
-                     "#project_category, #category",
+                     "#project_category, #category, #subprojects",
                      "issue_categories",
                      Config.settings.project_category
         );
@@ -228,7 +210,11 @@ function OptionsController($scope, $http, $rootScope, $location) {
     $scope.loadColor = function() {
         var color = Config.settings.colors["type" + $scope.colorCategory];
         $scope.selectedColor = color || -1;
-//        jQuery("#colors").val(color || "-1");
+    };
+
+    $scope.loadSubColor = function() {
+        var color = Config.settings.subcolors["sub" + $scope.colorSubproject];
+        $scope.selectedSubColor = color || -1;
     };
 
     $scope.setColor = function() {
@@ -239,7 +225,21 @@ function OptionsController($scope, $http, $rootScope, $location) {
         Config.settings.colors["type" + $scope.colorCategory] = $scope.selectedColor == -1 ? null : $scope.selectedColor;
     };
 
-    updateSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
+    $scope.setSubColor = function() {
+        if ((!$scope.colorSubproject && $scope.colorSubproject !== 0) || $scope.colorSubproject == "-1") {
+            return false;
+        }
+
+        Config.settings.subcolors["sub" + $scope.colorSubproject] = $scope.selectedSubColor == -1 ? null : $scope.selectedSubColor;
+    };
+
+    $scope.toggleGroup = function($event) {
+        var el = jQuery($event.target);
+        el.find("span").toggleClass("icon-chevron-down").toggleClass("icon-chevron-up");
+        el.parent().toggleClass("collapse");
+    };
+
+    updateProjectsSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
                  "#projects",
                  "projects",
                  Config.settings.project
