@@ -73,18 +73,21 @@ function loadSettings() {
     try {
         settings = JSON.parse(window.localStorage.getItem("settings"));
         Config.settings.colors = Config.settings.colors || Config.DEFAULT_COLORS;
-        Config.settings.subcolors = Config.settings.colors || {};
+        Config.settings.subcolors = Config.settings.subcolors || {};
+        Config.settings.usercolors = Config.settings.usercolors || {};
     } catch(e) {}
 
     if (settings) {
         Config.settings = settings;
         Config.settings.colors = Config.settings.colors || Config.DEFAULT_COLORS;
-        Config.settings.subcolors = Config.settings.colors || {};
+        Config.settings.subcolors = Config.settings.subcolors || {};
+        Config.settings.usercolors = Config.settings.usercolors || {};
     } else {
         Config.settings.project = Config.DEFAULT_PROJECT;
         Config.settings.tickets = Config.TICKETS_COUNT;
         Config.settings.colors = Config.DEFAULT_COLORS;
         Config.settings.subcolors = {};
+        Config.settings.usercolors = {};
     }
 }
 
