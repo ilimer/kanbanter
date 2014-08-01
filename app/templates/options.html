@@ -10,9 +10,10 @@
                     <div class="form-group">
                         <div class="form-element">
                             <label for="projects" class="control-label">Проект: </label>
-                            <select id="projects" class="form-control" ng-model="formData.project" ng-change="loadCategories()">
-                                <option value="-1" selected>Все</option>
+                            <select id="projects" class="form-control" multiple="multiple" ng-model="formData.project" ng-change="loadCategories()">
+                                <option value="-1">Все</option>
                             </select>
+                            <!--span class="icon-minus-sign expand-link" ng-click="expandSelect($event)"></span-->
                         </div>
                         <div class="form-element">
                             <label for="project_category" class="control-label">Категория: </label>

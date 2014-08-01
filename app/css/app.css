@@ -327,6 +327,10 @@ div.ticketProgressBarContainer.ratio0 {
     cursor: pointer;
 }
 
+.form-group .expand-link {
+    cursor: pointer;
+}
+
 .form-element {
     width: 380px;
     display: inline-block;
@@ -339,4 +343,8 @@ input[type="radio"], input[type="checkbox"] {
 
 .modal-body {
     max-height:600px;
+}
+
+#projects {
+    width: 300px;
 }
