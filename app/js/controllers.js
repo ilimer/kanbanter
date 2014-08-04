@@ -170,7 +170,8 @@ function OptionsController($scope, $http, $rootScope, $location) {
         project_category: -1,
         autoscroll: Config.settings.autoscroll || false,
         assigned: Config.settings.assigned || -1,
-        designer: Config.settings.designer || -1
+        designer: Config.settings.designer || -1,
+        sort: Config.settings.sort ? Config.settings.sort.replace(":desc", "") : ""
     };
     $scope.tickets = Config.settings.tickets;
     $scope.colorCategory = -1;
@@ -179,13 +180,21 @@ function OptionsController($scope, $http, $rootScope, $location) {
     $scope.selectedSubColor = -1;
     $scope.colorUser = -1;
     $scope.selectedUserColor = -1;
+    $scope.sortOrder = ":desc";
 
     jQuery("#projects").multipleSelect({
         onClick: function() {
             $scope.formData.project = jQuery("#projects").multipleSelect("getSelects");
         },
         selectAll: false,
-        filter: true
+        filter: true,
+        styler: function(v, p) {
+            if (p && p == "6") {
+                return "margin-left: 2em";
+            } else if (p) {
+                return "margin-left: 1em";
+            }
+        }
     });
 
     $scope.toggleSettings = function() {
@@ -194,6 +203,9 @@ function OptionsController($scope, $http, $rootScope, $location) {
 
     $scope.saveSettings = function() {
         jQuery.extend(Config.settings, $scope.formData);
+        if (Config.settings.sort) {
+            Config.settings.sort = Config.settings.sort + $scope.sortOrder;
+        }
         window.localStorage.setItem("settings", JSON.stringify(Config.settings));
         jQuery(".options").toggleClass("fade");
         $rootScope.$emit("forceUpdate");
@@ -273,16 +285,22 @@ function OptionsController($scope, $http, $rootScope, $location) {
         el.parent().toggleClass("collapse");
     };
 
-    $scope.expandSelect = function($event) {
-        jQuery($event.target).toggleClass("icon-plus-sign").toggleClass("icon-minus-sign");
-
-        var select = jQuery($event.target).parent().find("select");
-        if (select.attr("multiple")) {
-            select.removeAttr("multiple");
+    $scope.changeOrder = function($event, target) {
+        var t = $event.target || target;
+        jQuery(t).toggleClass("icon-arrow-up").toggleClass("icon-arrow-down");
+        if (jQuery(t).hasClass("icon-arrow-up")) {
+            $scope.sortOrder = ":desc";
+            jQuery(t).attr("title", "По убыванию");
         } else {
-            select.attr("multiple", "multiple");
+            $scope.sortOrder = "";
+            jQuery(t).attr("title", "По возрастанию");
         }
     };
+
+    if (Config.settings.sort && Config.settings.sort.indexOf(":desc") == -1) {
+        $scope.sortOrder = "";
+        $scope.changeOrder({}, jQuery(".expand-link"));
+    }
 
     updateProjectsSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
                  "#projects",

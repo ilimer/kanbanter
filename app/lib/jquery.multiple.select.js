@@ -123,9 +123,10 @@
 
             if ($elm.is('option')) {
                 var value = $elm.val(),
+                    parent = $elm.attr("parent"),
                     text = that.options.textTemplate($elm),
                     selected = (that.$el.attr('multiple') != undefined) ? $elm.prop('selected') : ($elm.attr('selected') == 'selected'),
-                    style = this.options.styler(value) ? ' style="' + this.options.styler(value) + '"' : '';
+                    style = this.options.styler(value, parent) ? ' style="' + this.options.styler(value, parent) + '"' : '';
 
                 disabled = groupDisabled || $elm.prop('disabled');
                 if ((this.options.blockSeparator > "") && (this.options.blockSeparator == $elm.val())) {

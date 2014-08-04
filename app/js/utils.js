@@ -29,12 +29,14 @@ function updateProjectsSelect(url, id, dataAlias, selectedId) {
 
             if ((!selectedId instanceof Array) || selectedId.length == 1) {
                 $select.removeAttr("multiple");
-//                $select.parent().find("span").toggleClass("icon-plus-sign").toggleClass("icon-minus-sign");
             }
             for (var i in data[dataAlias]) {
                 if (data[dataAlias][i].name) {
                     el = document.createElement("option");
                     jQuery(el).attr("value", data[dataAlias][i].id).text(data[dataAlias][i].name);
+                    if (data[dataAlias][i].parent) {
+                        jQuery(el).attr("parent", data[dataAlias][i].parent.id);
+                    }
                     if (typeof selectedId != "undefined") {
                         if (data[dataAlias][i].id == selectedId || selectedId.indexOf(data[dataAlias][i].id.toString()) > -1) {
                             jQuery(el).attr("selected", "selected");
@@ -118,7 +120,7 @@ function loadSettings() {
         Config.settings.subcolors = Config.settings.subcolors || {};
         Config.settings.usercolors = Config.settings.usercolors || {};
     } else {
-        Config.settings.project = Config.DEFAULT_PROJECT;
+        Config.settings.project = [Config.DEFAULT_PROJECT];
         Config.settings.tickets = Config.TICKETS_COUNT;
         Config.settings.colors = Config.DEFAULT_COLORS;
         Config.settings.subcolors = {};
@@ -147,7 +149,8 @@ function loadIssuesFromMultipleProjects(apiCode, callback, offset, result) {
 function loadIssues(apiCode, callback, offset, result, projects, tickets) {
     offset = offset || 0;
     result = result || [];
-    jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
+    jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=' +
+        (Config.settings.sort ? Config.settings.sort : 'priority:desc,created_on:desc') +
         ((Config.settings.assigned && Config.settings.assigned != -1) ? '&assigned_to_id=' + Config.settings.assigned : '') +
         ((Config.settings.tracker && Config.settings.tracker != -1) ? '&tracker_id=' + Config.settings.tracker : '') +
         ((Config.settings.project_category && Config.settings.project_category != -1) ? '&category_id=' + Config.settings.project_category : '') +
