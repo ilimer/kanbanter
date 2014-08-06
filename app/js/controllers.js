@@ -166,7 +166,7 @@ LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
 function OptionsController($scope, $http, $rootScope, $location) {
     $scope.formData = {
         tracker: Config.settings.tracker || -1,
-        project: Config.settings.project,
+        project: Config.settings.project instanceof Array ? Config.settings.project : [Config.settings.project],
         project_category: -1,
         autoscroll: Config.settings.autoscroll || false,
         assigned: Config.settings.assigned || -1,
@@ -314,8 +314,8 @@ function OptionsController($scope, $http, $rootScope, $location) {
                  Config.settings.tracker
     );
 
-    if (!(Config.settings.project instanceof Array)) {
-        updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+    if (Config.settings.project.length === 1) {
+        updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project[0] + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
                      "#project_category, #category",
                      "issue_categories",
                      Config.settings.project_category
