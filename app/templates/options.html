@@ -10,9 +10,10 @@
                     <div class="form-group">
                         <div class="form-element">
                             <label for="projects" class="control-label">Проект: </label>
-                            <select id="projects" class="form-control" ng-model="formData.project" ng-change="loadCategories()">
-                                <option value="-1" selected>Все</option>
+                            <select id="projects" class="form-control" multiple="multiple" ng-model="formData.project" ng-change="loadCategories()">
+                                <option value="-1">Все</option>
                             </select>
+                            <!--span class="icon-minus-sign expand-link" ng-click="expandSelect($event)"></span-->
                         </div>
                         <div class="form-element">
                             <label for="project_category" class="control-label">Категория: </label>
@@ -35,6 +36,16 @@
                             <select id="assigned" ng-model="formData.assigned" class="form-control">
                                 <option value="-1" selected>Все</option>
                             </select>
+                        </div>
+                        <div class="form-element">
+                            <label for="sort" class="control-label">Сортировка: </label>
+                            <select id="sort" ng-model="formData.sort" class="form-control">
+                                <option value="" selected>как обычно (приоритет)</option>
+                                <option value="updated_on" selected>по дате обновления</option>
+                                <option value="created_on" selected>по времени создания</option>
+                                <option value="assigned_to" selected>на кого назначено</option>
+                            </select>
+                            <span class="icon-arrow-up expand-link" title="По убыванию" ng-click="changeOrder($event)"></span>
                         </div>
                     </div>
                     <div class="form-group collapse">
@@ -78,6 +89,27 @@
                             <option value="brown">коричневый</option>
                         </select>
                         <button ng-click="setSubColor()" class="btn btn-info">Назначить</button>
+                    </div>
+                    <div class="form-group collapse">
+                        <h5 class="navbar-link" ng-click="toggleGroup($event)">Цвета для пользователей <span class="icon-chevron-down"></span></h5>
+                        <select id="users" ng-model="colorUser" ng-change="loadUserColor()" class="form-control">
+                            <option value="-1" selected>Нет</option>
+                        </select>
+                        <select id="usercolors" ng-model="selectedUserColor" class="form-control">
+                            <option value="-1" selected>Нет</option>
+                            <option value="black">черный</option>
+                            <option value="green">зеленый</option>
+                            <option value="purple">фиолетовый</option>
+                            <option value="orange">оранжевый</option>
+                            <option value="blue">синий</option>
+                            <option value="pink">розовый</option>
+                            <option value="red">красный</option>
+                            <option value="cyan">голубой</option>
+                            <option value="grey">серый</option>
+                            <option value="magenta">пурпурный</option>
+                            <option value="brown">коричневый</option>
+                        </select>
+                        <button ng-click="setUserColor()" class="btn btn-info">Назначить</button>
                     </div>
                     <div class="form-group collapse">
                         <h5 class="navbar-link" ng-click="toggleGroup($event)">Дополнительные настройки <span class="icon-chevron-down"></span></h5>

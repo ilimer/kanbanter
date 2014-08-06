@@ -65,7 +65,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
             $scope.$apply();
             $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
         };
-        loadIssues($rootScope.user.apiCode, callback);
+        loadIssuesFromMultipleProjects($rootScope.user.apiCode, callback);
     }
 
     getData();
@@ -145,11 +145,14 @@ function KanbanController($scope, $http, $rootScope, $location) {
 	};
 
 	$scope.getTicketColor = function (ticket, fieldId) {
-        if (ticket.category && ticket.category.id) {
-            return Config.settings.colors["type" + ticket.category.id] || "";
+        if (ticket.category && ticket.category.id && Config.settings.colors["type" + ticket.category.id]) {
+            return Config.settings.colors["type" + ticket.category.id];
         }
-        if (ticket.project && ticket.project.id) {
-            return Config.settings.subcolors["sub" + ticket.project.id] || "";
+        if (ticket.project && ticket.project.id && Config.settings.subcolors["sub" + ticket.project.id]) {
+            return Config.settings.subcolors["sub" + ticket.project.id];
+        }
+        if (ticket.assigned_to && ticket.assigned_to.id && Config.settings.usercolors["user" + ticket.assigned_to.id]) {
+            return Config.settings.usercolors["user" + ticket.assigned_to.id];
         }
 
 		return "";
@@ -165,12 +168,48 @@ function KanbanController($scope, $http, $rootScope, $location) {
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
 
 function OptionsController($scope, $http, $rootScope, $location) {
+    $scope.formData = {
+        tracker: Config.settings.tracker || -1,
+        project: Config.settings.project instanceof Array ? Config.settings.project : [Config.settings.project],
+        project_category: -1,
+        autoscroll: Config.settings.autoscroll || false,
+        assigned: Config.settings.assigned || -1,
+        designer: Config.settings.designer || -1,
+        sort: Config.settings.sort ? Config.settings.sort.replace(":desc", "") : ""
+    };
+    $scope.tickets = Config.settings.tickets;
+    $scope.colorCategory = -1;
+    $scope.selectedColor = -1;
+    $scope.colorSubproject = -1;
+    $scope.selectedSubColor = -1;
+    $scope.colorUser = -1;
+    $scope.selectedUserColor = -1;
+    $scope.sortOrder = ":desc";
+
+    jQuery("#projects").multipleSelect({
+        onClick: function() {
+            $scope.formData.project = jQuery("#projects").multipleSelect("getSelects");
+        },
+        selectAll: false,
+        filter: true,
+        styler: function(v, p) {
+            if (p && p == "6") {
+                return "margin-left: 2em";
+            } else if (p) {
+                return "margin-left: 1em";
+            }
+        }
+    });
+
     $scope.toggleSettings = function() {
         jQuery(".options").toggleClass("fade");
     };
 
     $scope.saveSettings = function() {
         jQuery.extend(Config.settings, $scope.formData);
+        if (Config.settings.sort) {
+            Config.settings.sort = Config.settings.sort + $scope.sortOrder;
+        }
         window.localStorage.setItem("settings", JSON.stringify(Config.settings));
         jQuery(".options").toggleClass("fade");
         $rootScope.$emit("forceUpdate");
@@ -181,34 +220,28 @@ function OptionsController($scope, $http, $rootScope, $location) {
         window.location.href = window.location.href;
     };
 
-    $scope.formData = {
-        tracker: -1,
-        project_category: -1,
-        autoscroll: Config.settings.autoscroll || false,
-        assigned: -1,
-        designer: false
-    };
-    $scope.tickets = Config.settings.tickets;
-    $scope.colorCategory = -1;
-    $scope.selectedColor = -1;
-    $scope.colorSubproject = -1;
-    $scope.selectedColor2 = -1;
-
     $scope.loadCategories = function() {
-        jQuery("#project_category, #category, #assigned, #subprojects").find("option[value != -1]").remove();
+        jQuery("#project_category, #category, #assigned, #subprojects, #users").find("option[value != -1]").remove();
 
-        updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
-                     "#project_category, #category, #subprojects",
-                     "issue_categories",
-                     Config.settings.project_category
-        );
+        var projects = $scope.formData.project;
+        if (!(projects instanceof Array)) {
+            projects = new Array(projects);
+        }
 
-        updateUsersSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/memberships.json?limit=100&key=' + $rootScope.user.apiCode + "&callback=?",
-            "#assigned",
+        if (projects.length === 1) {
+            updateSelect(Config.REDMINE_URL + 'projects/' + $scope.formData.project[0] + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                "#project_category, #category, #subprojects",
+                "issue_categories",
+                Config.settings.project_category
+            );
+        }
+
+        updateUsersSelect(projects,
+            "#assigned, #users",
             "memberships",
-            Config.settings.assigned
+            Config.settings.assigned,
+            $rootScope.user.apiCode
         );
-
     };
 
     $scope.loadColor = function() {
@@ -219,6 +252,11 @@ function OptionsController($scope, $http, $rootScope, $location) {
     $scope.loadSubColor = function() {
         var color = Config.settings.subcolors["sub" + $scope.colorSubproject];
         $scope.selectedSubColor = color || -1;
+    };
+
+    $scope.loadUserColor = function() {
+        var color = Config.settings.usercolors["user" + $scope.colorUser];
+        $scope.selectedUserColor = color || -1;
     };
 
     $scope.setColor = function() {
@@ -237,11 +275,36 @@ function OptionsController($scope, $http, $rootScope, $location) {
         Config.settings.subcolors["sub" + $scope.colorSubproject] = $scope.selectedSubColor == -1 ? null : $scope.selectedSubColor;
     };
 
+    $scope.setUserColor = function() {
+        if ((!$scope.colorUser && $scope.colorUser !== 0) || $scope.colorUser == "-1") {
+            return false;
+        }
+
+        Config.settings.usercolors["user" + $scope.colorUser] = $scope.selectedUserColor == -1 ? null : $scope.selectedUserColor;
+    };
+
     $scope.toggleGroup = function($event) {
         var el = jQuery($event.target);
         el.find("span").toggleClass("icon-chevron-down").toggleClass("icon-chevron-up");
         el.parent().toggleClass("collapse");
     };
+
+    $scope.changeOrder = function($event, target) {
+        var t = $event.target || target;
+        jQuery(t).toggleClass("icon-arrow-up").toggleClass("icon-arrow-down");
+        if (jQuery(t).hasClass("icon-arrow-up")) {
+            $scope.sortOrder = ":desc";
+            jQuery(t).attr("title", "По убыванию");
+        } else {
+            $scope.sortOrder = "";
+            jQuery(t).attr("title", "По возрастанию");
+        }
+    };
+
+    if (Config.settings.sort && Config.settings.sort.indexOf(":desc") == -1) {
+        $scope.sortOrder = "";
+        $scope.changeOrder({}, jQuery(".expand-link"));
+    }
 
     updateProjectsSelect(Config.REDMINE_URL + 'projects.json?limit=50&key=' + $rootScope.user.apiCode + "&callback=?",
                  "#projects",
@@ -255,11 +318,13 @@ function OptionsController($scope, $http, $rootScope, $location) {
                  Config.settings.tracker
     );
 
-    updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
-                 "#project_category, #category",
-                 "issue_categories",
-                 Config.settings.project_category
-    );
+    if (Config.settings.project.length === 1) {
+        updateSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project[0] + '/issue_categories.json?key=' + $rootScope.user.apiCode + "&callback=?",
+                     "#project_category, #category",
+                     "issue_categories",
+                     Config.settings.project_category
+        );
+    }
 
     if (Config.settings.autoscroll) {
         $rootScope.$on("forceAutoscroll", function() {
@@ -267,10 +332,11 @@ function OptionsController($scope, $http, $rootScope, $location) {
         });
     }
 
-    updateUsersSelect(Config.REDMINE_URL + 'projects/' + Config.settings.project + '/memberships.json?limit=100&key=' + $rootScope.user.apiCode + "&callback=?",
-        "#assigned",
+    updateUsersSelect(jQuery.makeArray(Config.settings.project),
+        "#assigned, #users",
         "memberships",
-        Config.settings.assigned
+        Config.settings.assigned,
+        $rootScope.user.apiCode
     );
 
 }
