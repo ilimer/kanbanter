@@ -93,6 +93,11 @@ function KanbanController($scope, $http, $rootScope, $location) {
 		var readyForTesting = 17;
 		var testing = 18;
 		var ready = 10;
+        var designer = Config.settings.designer;
+
+        if (designer == -1) {
+            designer = false;
+        }
 
         //Неназначенные и низкоприоритетные
 		$scope.noDev = function (ticket) {
@@ -101,7 +106,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
 
         //Дизайн
         $scope.design = function (ticket){
-            return (ticket.tracker && ticket.tracker.id == designTracker && !Config.settings.designer)
+            return (ticket.tracker && ticket.tracker.id == designTracker && !designer)
         };
 
         //Назначенные и в новые
@@ -109,7 +114,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && (!ticket.category || ticket.category.id != otherCategory)
                  && (ticket.status.id === activeStatus || ticket.status.id === suspendedStatus)
-                 && (ticket.tracker && (ticket.tracker.id != designTracker || Config.settings.designer))
+                 && (ticket.tracker && (ticket.tracker.id != designTracker || designer))
                  && (ticket.priority && ticket.priority.id >= 4)
         };
 
@@ -117,7 +122,7 @@ function KanbanController($scope, $http, $rootScope, $location) {
 		$scope.inProgress = function (ticket) {
             return ticket.assigned_to && ticket.assigned_to.id
                  && ticket.status.id === inProgress
-                 && (ticket.tracker && (ticket.tracker.id != designTracker || Config.settings.designer))
+                 && (ticket.tracker && (ticket.tracker.id != designTracker || designer))
         };
 
         //Тестируются
@@ -170,7 +175,7 @@ function OptionsController($scope, $http, $rootScope, $location) {
         project_category: -1,
         autoscroll: Config.settings.autoscroll || false,
         assigned: Config.settings.assigned || -1,
-        designer: Config.settings.designer || -1,
+        designer: Config.settings.designer || false,
         sort: Config.settings.sort ? Config.settings.sort.replace(":desc", "") : ""
     };
     $scope.tickets = Config.settings.tickets;
@@ -181,6 +186,10 @@ function OptionsController($scope, $http, $rootScope, $location) {
     $scope.colorUser = -1;
     $scope.selectedUserColor = -1;
     $scope.sortOrder = ":desc";
+
+    if ($scope.formData.designer == -1) {
+        $scope.formData.designer = false;
+    }
 
     jQuery("#projects").multipleSelect({
         onClick: function() {
