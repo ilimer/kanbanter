@@ -68,6 +68,7 @@
                             <option value="brown">коричневый</option>
                         </select>
                         <button ng-click="setColor()" class="btn btn-info">Назначить</button>
+                        <button ng-click="resetColors('colors')" class="btn btn-danger">Сбросить все</button>
                     </div>
                     <div class="form-group collapse">
                         <h5 class="navbar-link" ng-click="toggleGroup($event)">Цвета для подпроектов <span class="icon-chevron-down"></span></h5>
@@ -89,6 +90,7 @@
                             <option value="brown">коричневый</option>
                         </select>
                         <button ng-click="setSubColor()" class="btn btn-info">Назначить</button>
+                        <button ng-click="resetColors('subcolors')" class="btn btn-danger">Сбросить все</button>
                     </div>
                     <div class="form-group collapse">
                         <h5 class="navbar-link" ng-click="toggleGroup($event)">Цвета для пользователей <span class="icon-chevron-down"></span></h5>
@@ -110,6 +112,7 @@
                             <option value="brown">коричневый</option>
                         </select>
                         <button ng-click="setUserColor()" class="btn btn-info">Назначить</button>
+                        <button ng-click="resetColors('usercolors')" class="btn btn-danger">Сбросить все</button>
                     </div>
                     <div class="form-group collapse">
                         <h5 class="navbar-link" ng-click="toggleGroup($event)">Дополнительные настройки <span class="icon-chevron-down"></span></h5>

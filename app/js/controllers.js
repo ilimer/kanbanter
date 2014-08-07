@@ -288,6 +288,10 @@ function OptionsController($scope, $http, $rootScope, $location) {
         Config.settings.usercolors["user" + $scope.colorUser] = $scope.selectedUserColor == -1 ? null : $scope.selectedUserColor;
     };
 
+    $scope.resetColors = function(type) {
+        Config.settings[type] = {};
+    };
+
     $scope.toggleGroup = function($event) {
         var el = jQuery($event.target);
         el.find("span").toggleClass("icon-chevron-down").toggleClass("icon-chevron-up");
