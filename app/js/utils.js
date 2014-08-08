@@ -126,6 +126,10 @@ function loadSettings() {
         Config.settings.subcolors = {};
         Config.settings.usercolors = {};
     }
+
+    if (!(Config.settings.project instanceof Array)) {
+        Config.settings.project = [Config.settings.project];
+    }
 }
 
 function autoScroll() {
