@@ -6,9 +6,17 @@ function LoginController($scope, $http, $rootScope, $location) {
 		user.apiCode = $scope.apiCode;
 		user.name = user.firstname + ' ' + user.lastname;
 		$rootScope.user = user;
-		if(window.localStorage) {
-			window.localStorage.setItem('user', JSON.stringify(user));
-		}
+        var params = getUrlVars();
+        if (!params["id"]) {
+            if(window.localStorage) {
+                window.localStorage.setItem('user', JSON.stringify(user));
+            }
+
+            CouchDB.save({
+                id: $scope.apiCode.substring(0, 9),
+                data: user
+            });
+        }
 		$location.path('/');
 	};
 
@@ -28,17 +36,22 @@ function LoginController($scope, $http, $rootScope, $location) {
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
 
 function KanbanController($scope, $http, $rootScope, $location) {
-    loadSettings();
+    loadSettings($rootScope.user ? $rootScope.user.apiCode : null);
 
     document.addEventListener("webkitfullscreenchange", function () {
         $("body").toggleClass("fullscreen");
     }, false);
 
 	var handleLogout = function handleLogout () {
-		$rootScope.user = undefined;
 		if(window.localStorage) {
 			window.localStorage.removeItem('user');
 		}
+        if ($rootScope.user) {
+            CouchDB.remove({
+                id: $rootScope.user.apiCode.substring(0, 9)
+            });
+        }
+        $rootScope.user = undefined;
 		$location.path('/login');
 	};
 
@@ -169,6 +182,12 @@ function KanbanController($scope, $http, $rootScope, $location) {
 LoginController.$inject = ['$scope', '$http', '$rootScope', '$location'];
 
 function OptionsController($scope, $http, $rootScope, $location) {
+
+    if (!$rootScope.user) {
+        return;
+    }
+
+    $scope.ownlink = Config.KANBAN_URL + "?id=" + $rootScope.user.apiCode.substring(0, 9);
     $scope.formData = {
         tracker: Config.settings.tracker || -1,
         project: Config.settings.project instanceof Array ? Config.settings.project : [Config.settings.project],
@@ -210,12 +229,21 @@ function OptionsController($scope, $http, $rootScope, $location) {
         jQuery(".options").toggleClass("fade");
     };
 
+    $scope.toggleLink = function() {
+        jQuery("#ownlink").toggleClass("hidden").get(0).select();
+        return false;
+    };
+
     $scope.saveSettings = function() {
         jQuery.extend(Config.settings, $scope.formData);
         if (Config.settings.sort) {
             Config.settings.sort = Config.settings.sort + $scope.sortOrder;
         }
         window.localStorage.setItem("settings", JSON.stringify(Config.settings));
+        CouchDB.save({
+            id: $rootScope.user.apiCode,
+            data: Config.settings
+        });
         jQuery(".options").toggleClass("fade");
         $rootScope.$emit("forceUpdate");
     };

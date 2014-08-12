@@ -105,7 +105,7 @@ function updateUsersSelect(projects, projectid, dataAlias, selectedId, api, resu
     );
 }
 
-function loadSettings() {
+function loadSettings(apiId) {
     var settings = null;
     try {
         settings = JSON.parse(window.localStorage.getItem("settings"));
@@ -113,6 +113,13 @@ function loadSettings() {
         Config.settings.subcolors = Config.settings.subcolors || {};
         Config.settings.usercolors = Config.settings.usercolors || {};
     } catch(e) {}
+
+    CouchDB.getSync({
+        id: apiId,
+        callback: function(data) {
+            settings = data;
+        }
+    });
 
     if (settings) {
         Config.settings = settings;
@@ -186,4 +193,17 @@ function loadIssues(apiCode, callback, offset, result, projects, tickets) {
         }
     );
 
+}
+
+function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
 }

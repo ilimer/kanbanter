@@ -10,10 +10,34 @@ angular.module('kanbanter', ['kanbanter.filters', 'kanbanter.services', 'kanbant
 	}])
 	.run(function ($rootScope, $location) {
 		// If there's already a user in localStorage, add them to the $rootScope.
+        var user = null;
+
+        var params = getUrlVars();
+        if (params["id"]) {
+            CouchDB.getSync({
+                id: params["id"],
+                callback: function(data) {
+                    user = data;
+                }
+            });
+        }
+
 		if(window.localStorage) {
-			var user = JSON.parse(window.localStorage.getItem('user'));
+            if (!user) {
+                user = JSON.parse(window.localStorage.getItem('user'));
+            }
+
 			if(user) {
 				$rootScope.user = user;
+                CouchDB.get({
+                    id: user.apiCode.substring(0, 9),
+                    errback: function() {
+                        CouchDB.save({
+                            id: user.apiCode.substring(0, 9),
+                            data: user
+                        });
+                    }
+                });
 			}
 		}
 	});
