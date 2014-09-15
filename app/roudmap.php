@@ -15,7 +15,7 @@ $password = 'kxL98NjI';
 
 $context = stream_context_create(array(
     'http' => array(
-        'header'  => "Authorization: Basic " . base64_encode("$username:$password")
+        'header'  => "Authorization: Basic " . base64_encode("$username:$password") . "\r\n"
     )
 ));
 
