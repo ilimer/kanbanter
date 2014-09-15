@@ -22,10 +22,9 @@ $context = stream_context_create(array(
 
 $data = file_get_contents($url,false, $context);
 
-var_dump($data);
 
 
-//echo json_decode(file_get_contents($url));
+echo json_decode(file_get_contents($data));
 
 
 ?>
