@@ -8,8 +8,6 @@ $url .= "?" . http_build_query(array(
 ));
 
 
-echo $url;
-
 $username = 'ilimer';
 $password = 'kxL98NjI';
 
@@ -24,7 +22,7 @@ $data = file_get_contents($url,false, $context);
 
 
 
-echo json_decode($data);
+var_dump(json_decode($data));
 
 
 ?>
