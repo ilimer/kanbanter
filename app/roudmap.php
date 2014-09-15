@@ -11,6 +11,8 @@ $url .= "?" . http_build_query(array(
 echo $url;
 
 
+$data = file_get_contents($url);
+
 
 echo json_decode(file_get_contents($url));
 
