@@ -13,6 +13,8 @@ echo $url;
 
 $data = file_get_contents($url);
 
+var_dump($data);
+
 
 echo json_decode(file_get_contents($url));
 
