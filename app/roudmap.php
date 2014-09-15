@@ -10,13 +10,22 @@ $url .= "?" . http_build_query(array(
 
 echo $url;
 
+$username = 'ilimer';
+$password = 'kxL98NjI';
 
-$data = file_get_contents($url);
+$context = stream_context_create(array(
+    'http' => array(
+        'header'  => "Authorization: Basic " . base64_encode("$username:$password")
+    )
+));
+
+
+$data = file_get_contents($url, $context);
 
 var_dump($data);
 
 
-echo json_decode(file_get_contents($url));
+//echo json_decode(file_get_contents($url));
 
 
 ?>
