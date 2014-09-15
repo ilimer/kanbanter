@@ -101,7 +101,8 @@ function autoScroll() {
 function loadIssues(apiCode, callback, offset, result) {
     offset = offset || 0;
     result = result || [];
-    jQuery.getJSON(Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
+    jQuery.getJSON(
+        Config.REDMINE_URL + 'issues.json?sort=priority:desc,created_on:desc' +
         ((Config.settings.assigned && Config.settings.assigned != -1) ? '&assigned_to_id=' + Config.settings.assigned : '') +
         ((Config.settings.tracker && Config.settings.tracker != -1) ? '&tracker_id=' + Config.settings.tracker : '') +
         ((Config.settings.project_category && Config.settings.project_category != -1) ? '&category_id=' + Config.settings.project_category : '') +

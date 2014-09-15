@@ -65,7 +65,12 @@ function KanbanController($scope, $http, $rootScope, $location) {
             $scope.$apply();
             $(".last-update").text("Последнее обновление в " + (new Date()).toLocaleString());
         };
-        loadIssues($rootScope.user.apiCode, callback);
+
+        jQuery.getJSON(Config.REDMINE_URL + '30178/relations.json?key=' + $rootScope.user.apiCode + "&callback=?", function(data){
+            console.log(data)
+            loadIssues($rootScope.user.apiCode, callback);
+        });
+
     }
 
     getData();
