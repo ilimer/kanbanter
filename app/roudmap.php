@@ -24,7 +24,7 @@ $data = file_get_contents($url,false, $context);
 
 
 
-echo json_decode(file_get_contents($data));
+echo json_decode($data);
 
 
 ?>
