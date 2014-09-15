@@ -20,7 +20,7 @@ $context = stream_context_create(array(
 ));
 
 
-$data = file_get_contents($url, $context);
+$data = file_get_contents($url,false, $context);
 
 var_dump($data);
 
