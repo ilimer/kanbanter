@@ -20,6 +20,8 @@ $context = stream_context_create(array(
 
 $data = json_decode(file_get_contents($url, false, $context), true);
 
+var_dump($data);
+
 
 foreach ($data['issues'] as $task) {
     echo "<li>" . $task['subject'];
