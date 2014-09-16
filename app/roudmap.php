@@ -19,7 +19,8 @@ $context = stream_context_create(array(
 
 $data = json_decode(file_get_contents($url, false, $context), true);
 
-var_dump($data);
+header('Content-Type: text/html; charset=utf-8');
+
 
 
 foreach ($data['issues'] as $task) {
