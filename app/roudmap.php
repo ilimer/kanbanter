@@ -18,7 +18,7 @@ $context = stream_context_create(array(
     )
 ));
 
-$data = json_decode(file_get_contents($url, false, $context));
+$data = json_decode(file_get_contents($url, false, $context), true);
 
 
 foreach ($data['issues'] as $task) {
